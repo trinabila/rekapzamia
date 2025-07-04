@@ -13,7 +13,7 @@ PENUTUP = 'Hormat Kami: Hasanudin - Ibah'
 #---------- SETUP ----------
 os.makedirs("data", exist_ok=True)
 DATA_PATH = "data/rekap.xlsx"
-Load data lama
+#Load data lama
 if os.path.exists(DATA_PATH):
 df_rekap = pd.read_excel(DATA_PATH)
 else:
@@ -122,7 +122,7 @@ df_preview["Banyaknya"] = df_preview["Banyaknya"].map(lambda x: f"{x:.2f}".repla
 df_preview["Harga"] = df_preview["Harga"].map(lambda x: f"Rp {int(x):,}".replace(",", "."))
 df_preview["Jumlah"] = df_preview["Jumlah"].map(lambda x: f"Rp {int(x):,}".replace(",", "."))
 st.dataframe(df_preview)
----------- REKAP ----------
+#---------- REKAP ----------
 st.subheader("📈 Rekap Penjualan")
 if not df_rekap.empty:
 df_tampil = df_rekap.copy()
