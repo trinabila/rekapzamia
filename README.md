@@ -1,11 +1,12 @@
 # 🧾 Aplikasi Nota Penjualan
 
-Aplikasi sederhana berbasis Streamlit untuk membuat dan merekap nota penjualan.
+Aplikasi sederhana untuk membuat nota penjualan dan menyimpan rekapnya ke file Excel (`data/rekap.xlsx`) menggunakan Streamlit.
 
 ## 📦 Fitur
-- Input data penjualan via form
-- Tampilkan nota otomatis
-- Simpan rekap ke Excel (`data/rekap.xlsx`)
+- Input nama pembeli dan barang
+- Tambah/hapus baris item
+- Preview nota langsung
+- Rekap penjualan otomatis tersimpan
 
 ## 🚀 Jalankan Aplikasi
 
