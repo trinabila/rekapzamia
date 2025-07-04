@@ -10,7 +10,7 @@ NAMA_TOKO = 'Tenun Tradisional "ZAMIA"'
 ALAMAT_TOKO = 'Jalan Jaya Bhakti III/131 Medono - Pekalongan'
 KONTAK_TOKO = '085870156300'
 PENUTUP = 'Hormat Kami: Hasanudin - Ibah'
----------- SETUP ----------
+#---------- SETUP ----------
 os.makedirs("data", exist_ok=True)
 DATA_PATH = "data/rekap.xlsx"
 Load data lama
@@ -20,7 +20,7 @@ else:
 df_rekap = pd.DataFrame(columns=["Tanggal", "Pembeli", "Barang", "Banyaknya", "Harga", "Jumlah"])
 st.set_page_config(page_title="Nota Penjualan", layout="wide")
 st.title("🧾 Aplikasi Nota Penjualan")
----------- INPUT ----------
+#---------- INPUT ----------
 st.sidebar.header("Input Penjualan Baru")
 tanggal = st.sidebar.date_input("Tanggal", date.today())
 pembeli = st.sidebar.text_input("Nama Pembeli / Toko")
@@ -37,7 +37,7 @@ it["harga"] = col3.number_input("Harga", value=it["harga"], key=f"harga_{idx}", 
 if col4.button("❌", key=f"hapus_{idx}"):
 st.session_state["items"].pop(idx)
 st.experimental_rerun()
----------- SIMPAN NOTA ----------
+#---------- SIMPAN NOTA ----------
 if st.sidebar.button("Simpan & Tampilkan Nota"):
 if not pembeli or len(st.session_state["items"]) == 0:
 st.sidebar.error("Isi nama pembeli dan minimal 1 item ya!")
@@ -114,7 +114,7 @@ rows.append({
     st.image(img_bytes, caption="Nota PNG", use_column_width=True)
     st.download_button("📥 Download Nota sebagai PNG", data=img_bytes, file_name="nota_zamia.png", mime="image/png")
 
----------- PREVIEW NOTA ----------
+#---------- PREVIEW NOTA ----------
 if 'df_nota' in locals():
 st.subheader("📋 Preview Nota Terakhir")
 df_preview = df_nota.copy()
