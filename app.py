@@ -72,4 +72,7 @@ if 'df_nota' in locals():
 st.subheader("📈 Rekap Penjualan")
 if not df_rekap.empty:
     df_tampil = df_rekap.copy()
-    df_tampil["Jumlah"] = df_tampil["Jumlah"].map
+    df_tampil["Jumlah"] = df_tampil["Jumlah"].map("Rp {:,.2f}".format)
+    st.dataframe(df_tampil)
+else:
+    st.write("Belum ada data rekap.")
