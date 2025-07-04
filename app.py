@@ -5,7 +5,7 @@ import re
 from datetime import date, datetime
 from PIL import Image, ImageDraw, ImageFont
 import io
----------- INFO TOKO ----------
+#---------- INFO TOKO ----------
 NAMA_TOKO = 'Tenun Tradisional "ZAMIA"'
 ALAMAT_TOKO = 'Jalan Jaya Bhakti III/131 Medono - Pekalongan'
 KONTAK_TOKO = '085870156300'
