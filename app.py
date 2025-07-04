@@ -164,15 +164,28 @@ if 'df_nota' in locals():
 
 # ---------- REKAP ---------- #
 st.subheader("📈 Rekap Penjualan")
+
 if not df_rekap.empty:
     df_tampil = df_rekap.copy()
-    df_tampil["Banyaknya"] = pd.to_numeric(df_tampil["Banyaknya"], errors="coerce")
-    df_tampil["Harga"] = pd.to_numeric(df_tampil["Harga"], errors="coerce")
-    df_tampil["Jumlah"] = pd.to_numeric(df_tampil["Jumlah"], errors="coerce")
+
+    # Tambah kolom index biar bisa dihapus
+    df_tampil.reset_index(inplace=True)
+    for i in ["Banyaknya", "Harga", "Jumlah"]:
+        df_tampil[i] = pd.to_numeric(df_tampil[i], errors="coerce")
 
     df_tampil["Banyaknya"] = df_tampil["Banyaknya"].map(lambda x: f"{x:.2f}".replace(".", ",") if pd.notnull(x) else "")
     df_tampil["Harga"] = df_tampil["Harga"].map(lambda x: f"Rp {int(x):,}".replace(",", ".") if pd.notnull(x) else "")
     df_tampil["Jumlah"] = df_tampil["Jumlah"].map(lambda x: f"Rp {int(x):,}".replace(",", ".") if pd.notnull(x) else "")
+
+    st.dataframe(df_tampil.drop(columns=\"index\"))
+
+    st.markdown(\"### 🗑 Hapus Baris Rekap\")  
+    pilih_index = st.selectbox(\"Pilih baris yang ingin dihapus:\", df_tampil[\"index\"])\n
+    if st.button(\"Hapus Baris Ini\"):\n
+        df_rekap.drop(index=pilih_index, inplace=True)\n
+        df_rekap.to_excel(DATA_PATH, index=False)\n
+        st.success(\"Baris berhasil dihapus!\")\n
+        st.experimental_rerun()
 
     st.dataframe(df_tampil)
 else:
