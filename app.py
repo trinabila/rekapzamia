@@ -6,19 +6,20 @@ from datetime import date, datetime
 from PIL import Image, ImageDraw, ImageFont
 import io
 import textwrap
-import locale
-
-# Set locale Indonesia
-try:
-    locale.setlocale(locale.LC_TIME, 'id_ID.UTF-8')
-except:
-    locale.setlocale(locale.LC_TIME, 'ind')
 
 # ---------- INFO TOKO ---------- #
 NAMA_TOKO = 'Tenun Tradisional "ZAMIA"'
 ALAMAT_TOKO = 'Jalan Jaya Bhakti III/131 Medono - Pekalongan'
 KONTAK_TOKO = '085870156300'
 PENUTUP = 'Hasanudin - Ibah'
+
+# Kamus bulan manual
+bulan_indo = {
+    'January': 'Januari', 'February': 'Februari', 'March': 'Maret',
+    'April': 'April', 'May': 'Mei', 'June': 'Juni',
+    'July': 'Juli', 'August': 'Agustus', 'September': 'September',
+    'October': 'Oktober', 'November': 'November', 'December': 'Desember'
+}
 
 # ---------- SETUP ---------- #
 os.makedirs("data", exist_ok=True)
@@ -107,7 +108,13 @@ if st.sidebar.button("Simpan & Tampilkan Nota"):
         y += line_height
         draw.text((width//2 - 150, y), f"HP/WA: {KONTAK_TOKO}", font=font, fill="black")
         y += 2 * line_height
-        draw.text((50, y), f"Tanggal: {tanggal.strftime('%d %B %Y')}", font=font, fill="black")
+
+        # Format tanggal manual dengan kamus
+        tanggal_str = tanggal.strftime('%d %B %Y')
+        for eng, indo in bulan_indo.items():
+            tanggal_str = tanggal_str.replace(eng, indo)
+
+        draw.text((50, y), f"Tanggal: {tanggal_str}", font=font, fill="black")
         y += line_height
         draw.text((50, y), f"Pembeli: {pembeli}", font=font, fill="black")
         y += 2 * line_height
@@ -151,7 +158,7 @@ if 'df_nota' in locals():
     st.subheader("📋 Preview Nota Terakhir")
     df_preview = df_nota.copy()
     df_preview["Banyaknya"] = df_preview["Banyaknya"].map(lambda x: f"{x:.2f}".replace(".", ",") if pd.notnull(x) else "")
-    df_preview["Harga"] = df_preview["Harga"].map(lambda x: f"Rp {int(x):,}".replace(",", ".") if pd.notnull(x) else "")
+    df_preview["Harga"] = df_preview["Harga"] = df_preview["Harga"].map(lambda x: f"Rp {int(x):,}".replace(",", ".") if pd.notnull(x) else "")
     df_preview["Jumlah"] = df_preview["Jumlah"].map(lambda x: f"Rp {int(x):,}".replace(",", ".") if pd.notnull(x) else "")
     st.dataframe(df_preview)
 
