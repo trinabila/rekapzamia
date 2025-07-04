@@ -15,9 +15,9 @@ os.makedirs("data", exist_ok=True)
 DATA_PATH = "data/rekap.xlsx"
 #Load data lama
 if os.path.exists(DATA_PATH):
-df_rekap = pd.read_excel(DATA_PATH)
+    df_rekap = pd.read_excel(DATA_PATH)
 else:
-df_rekap = pd.DataFrame(columns=["Tanggal", "Pembeli", "Barang", "Banyaknya", "Harga", "Jumlah"])
+    df_rekap = pd.DataFrame(columns=["Tanggal", "Pembeli", "Barang", "Banyaknya", "Harga", "Jumlah"])
 st.set_page_config(page_title="Nota Penjualan", layout="wide")
 st.title("🧾 Aplikasi Nota Penjualan")
 #INPUT
