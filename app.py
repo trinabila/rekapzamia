@@ -2,10 +2,9 @@ import streamlit as st
 import pandas as pd
 import os
 import re
-from datetime import date, datetime
+from datetime import date
 from PIL import Image, ImageDraw, ImageFont
 import io
-import textwrap
 
 # ---------- INFO TOKO ---------- #
 NAMA_TOKO = 'Tenun Tradisional "ZAMIA"'
@@ -56,6 +55,10 @@ for idx, it in enumerate(st.session_state["items"]):
         st.experimental_rerun()
 
 # ---------- SIMPAN NOTA ---------- #
+df_nota = None
+img_bytes = None
+pdf_bytes = None
+
 if st.sidebar.button("Simpan & Tampilkan Nota"):
     if not pembeli or len(st.session_state["items"]) == 0:
         st.sidebar.error("Isi nama pembeli dan minimal 1 item ya!")
@@ -109,7 +112,6 @@ if st.sidebar.button("Simpan & Tampilkan Nota"):
         draw.text((width//2 - 150, y), f"HP/WA: {KONTAK_TOKO}", font=font, fill="black")
         y += 2 * line_height
 
-        # Format tanggal manual dengan kamus
         tanggal_str = tanggal.strftime('%d %B %Y')
         for eng, indo in bulan_indo.items():
             tanggal_str = tanggal_str.replace(eng, indo)
@@ -150,43 +152,40 @@ if st.sidebar.button("Simpan & Tampilkan Nota"):
         img_bytes = io.BytesIO()
         img.save(img_bytes, format='PNG')
         img_bytes.seek(0)
-        st.image(img_bytes, caption="Nota PNG")
-        st.download_button("📥 Download Nota sebagai PNG", data=img_bytes, file_name="nota_zamia.png", mime="image/png")
 
-# ---------- PREVIEW NOTA ---------- #
-if 'df_nota' in locals():
+        # PDF
+        pdf_bytes = io.BytesIO()
+        img.convert("RGB").save(pdf_bytes, format="PDF")
+        pdf_bytes.seek(0)
+
+# ---------- TAMPILKAN NOTA ---------- #
+if df_nota is not None:
     st.subheader("📋 Preview Nota Terakhir")
     df_preview = df_nota.copy()
     df_preview["Banyaknya"] = df_preview["Banyaknya"].map(lambda x: f"{x:.2f}".replace(".", ",") if pd.notnull(x) else "")
-    df_preview["Harga"] = df_preview["Harga"] = df_preview["Harga"].map(lambda x: f"Rp {int(x):,}".replace(",", ".") if pd.notnull(x) else "")
+    df_preview["Harga"] = df_preview["Harga"].map(lambda x: f"Rp {int(x):,}".replace(",", ".") if pd.notnull(x) else "")
     df_preview["Jumlah"] = df_preview["Jumlah"].map(lambda x: f"Rp {int(x):,}".replace(",", ".") if pd.notnull(x) else "")
     st.dataframe(df_preview)
 
+    st.download_button("📥 Download Nota sebagai PNG", data=img_bytes, file_name="nota_zamia.png", mime="image/png")
+    st.download_button("📥 Download Nota sebagai PDF", data=pdf_bytes, file_name="nota_zamia.pdf", mime="application/pdf")
+
 # ---------- REKAP ---------- #
 st.subheader("📈 Rekap Penjualan")
-
 if not df_rekap.empty:
     df_tampil = df_rekap.copy()
-
-    # Tambah kolom index biar bisa dihapus
-    df_tampil.reset_index(inplace=True)
-    for i in ["Banyaknya", "Harga", "Jumlah"]:
-        df_tampil[i] = pd.to_numeric(df_tampil[i], errors="coerce")
+    df_tampil["Banyaknya"] = pd.to_numeric(df_tampil["Banyaknya"], errors="coerce")
+    df_tampil["Harga"] = pd.to_numeric(df_tampil["Harga"], errors="coerce")
+    df_tampil["Jumlah"] = pd.to_numeric(df_tampil["Jumlah"], errors="coerce")
 
     df_tampil["Banyaknya"] = df_tampil["Banyaknya"].map(lambda x: f"{x:.2f}".replace(".", ",") if pd.notnull(x) else "")
     df_tampil["Harga"] = df_tampil["Harga"].map(lambda x: f"Rp {int(x):,}".replace(",", ".") if pd.notnull(x) else "")
     df_tampil["Jumlah"] = df_tampil["Jumlah"].map(lambda x: f"Rp {int(x):,}".replace(",", ".") if pd.notnull(x) else "")
 
-    st.dataframe(df_tampil.drop(columns=\"index\"))
-
-    st.markdown(\"### 🗑 Hapus Baris Rekap\")  
-    pilih_index = st.selectbox(\"Pilih baris yang ingin dihapus:\", df_tampil[\"index\"])\n
-    if st.button(\"Hapus Baris Ini\"):\n
-        df_rekap.drop(index=pilih_index, inplace=True)\n
-        df_rekap.to_excel(DATA_PATH, index=False)\n
-        st.success(\"Baris berhasil dihapus!\")\n
-        st.experimental_rerun()
-
     st.dataframe(df_tampil)
+
+    with open(DATA_PATH, "rb") as f:
+        st.download_button("📥 Download Rekapan Excel", f, file_name="rekap_zamia.xlsx")
+
 else:
     st.write("Belum ada data rekap.")
