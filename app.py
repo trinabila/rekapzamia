@@ -54,14 +54,13 @@ for idx, it in enumerate(st.session_state["items"]):
         st.session_state["items"].pop(idx)
         st.experimental_rerun()
 
-# ---------- SIMPAN NOTA ---------- #
+# ---------- TAMPILKAN NOTA ---------- #
 df_nota = None
 img_bytes = None
 pdf_bytes = None
-
-if st.sidebar.button("Simpan & Tampilkan Nota"):
+if st.button("Tampilkan Nota"):
     if not pembeli or len(st.session_state["items"]) == 0:
-        st.sidebar.error("Isi nama pembeli dan minimal 1 item ya!")
+        st.error("Isi nama pembeli dan minimal 1 item ya!")
     else:
         rows = []
         for it in st.session_state["items"]:
@@ -86,10 +85,6 @@ if st.sidebar.button("Simpan & Tampilkan Nota"):
             })
 
         df_nota = pd.DataFrame(rows)
-        df_rekap = pd.concat([df_rekap, df_nota], ignore_index=True)
-        df_rekap.to_excel(DATA_PATH, index=False)
-        st.session_state["items"] = []
-        st.success("Nota berhasil disimpan!")
 
         # ---------- GENERATE GAMBAR NOTA ---------- #
         width, height = 800, 600 + len(df_nota) * 60
@@ -153,39 +148,43 @@ if st.sidebar.button("Simpan & Tampilkan Nota"):
         img.save(img_bytes, format='PNG')
         img_bytes.seek(0)
 
-        # PDF
         pdf_bytes = io.BytesIO()
         img.convert("RGB").save(pdf_bytes, format="PDF")
         pdf_bytes.seek(0)
 
-# ---------- TAMPILKAN NOTA ---------- #
-if df_nota is not None:
-    st.subheader("📋 Preview Nota Terakhir")
-    df_preview = df_nota.copy()
-    df_preview["Banyaknya"] = df_preview["Banyaknya"].map(lambda x: f"{x:.2f}".replace(".", ",") if pd.notnull(x) else "")
-    df_preview["Harga"] = df_preview["Harga"].map(lambda x: f"Rp {int(x):,}".replace(",", ".") if pd.notnull(x) else "")
-    df_preview["Jumlah"] = df_preview["Jumlah"].map(lambda x: f"Rp {int(x):,}".replace(",", ".") if pd.notnull(x) else "")
-    st.dataframe(df_preview)
+        st.image(img_bytes, caption="Nota PNG")
+        st.download_button("📥 Download Nota sebagai PNG", data=img_bytes, file_name="nota_zamia.png", mime="image/png")
+        st.download_button("📄 Download Nota sebagai PDF", data=pdf_bytes, file_name="nota_zamia.pdf", mime="application/pdf")
 
-    st.download_button("📥 Download Nota sebagai PNG", data=img_bytes, file_name="nota_zamia.png", mime="image/png")
-    st.download_button("📥 Download Nota sebagai PDF", data=pdf_bytes, file_name="nota_zamia.pdf", mime="application/pdf")
+        if st.button("💾 Simpan Nota ke Arsip"):
+            df_rekap = pd.concat([df_rekap, df_nota], ignore_index=True)
+            df_rekap.to_excel(DATA_PATH, index=False)
+            st.success("Nota berhasil disimpan ke rekap!")
+            st.session_state["items"] = []
 
 # ---------- REKAP ---------- #
 st.subheader("📈 Rekap Penjualan")
 if not df_rekap.empty:
     df_tampil = df_rekap.copy()
-    df_tampil["Banyaknya"] = pd.to_numeric(df_tampil["Banyaknya"], errors="coerce")
-    df_tampil["Harga"] = pd.to_numeric(df_tampil["Harga"], errors="coerce")
-    df_tampil["Jumlah"] = pd.to_numeric(df_tampil["Jumlah"], errors="coerce")
+    df_tampil.reset_index(inplace=True)
+    st.dataframe(df_tampil.drop(columns="index"))
 
-    df_tampil["Banyaknya"] = df_tampil["Banyaknya"].map(lambda x: f"{x:.2f}".replace(".", ",") if pd.notnull(x) else "")
-    df_tampil["Harga"] = df_tampil["Harga"].map(lambda x: f"Rp {int(x):,}".replace(",", ".") if pd.notnull(x) else "")
-    df_tampil["Jumlah"] = df_tampil["Jumlah"].map(lambda x: f"Rp {int(x):,}".replace(",", ".") if pd.notnull(x) else "")
+    baris_edit = st.selectbox("Pilih baris untuk diedit:", df_tampil["index"])
+    col1, col2, col3 = st.columns(3)
+    barang_edit = col1.text_input("Barang", value=df_tampil.loc[baris_edit, "Barang"])
+    banyak_edit = col2.number_input("Banyaknya", value=float(df_tampil.loc[baris_edit, "Banyaknya"]))
+    harga_edit = col3.number_input("Harga", value=float(df_tampil.loc[baris_edit, "Harga"]))
 
-    st.dataframe(df_tampil)
+    if st.button("✏️ Simpan Perubahan"):
+        df_rekap.loc[baris_edit, "Barang"] = barang_edit
+        df_rekap.loc[baris_edit, "Banyaknya"] = banyak_edit
+        df_rekap.loc[baris_edit, "Harga"] = harga_edit
+        df_rekap.loc[baris_edit, "Jumlah"] = banyak_edit * harga_edit
+        df_rekap.to_excel(DATA_PATH, index=False)
+        st.success("Berhasil diedit!")
+        st.experimental_rerun()
 
     with open(DATA_PATH, "rb") as f:
         st.download_button("📥 Download Rekapan Excel", f, file_name="rekap_zamia.xlsx")
-
 else:
     st.write("Belum ada data rekap.")
